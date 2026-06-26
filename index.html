@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo: Wirtualny Portier — Szkoła Jazdy TURBO Konin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #D60404;
+      --dark: #181828;
+      --dark2: #1f1f35;
+      --green: #16a34a;
+      --yellow: #b45309;
+      --gray: #64748b;
+      --light: #f1f5f9;
+      --radius: 10px;
+    }
+    body {
+      font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--light);
+      color: #1e293b;
+      min-height: 100vh;
+      padding: 0;
+    }
+    h1, h2, h3, .brand { font-family: 'Rajdhani', sans-serif; }
+
+    /* TOPBAR */
+    .topbar {
+      background: var(--dark);
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar .brand { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; }
+    .topbar .brand span { color: var(--red); }
+    .topbar .badge-live {
+      background: var(--red);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+    /* CONTAINER */
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+
+    /* HERO */
+    .hero { text-align: center; margin-bottom: 24px; }
+    .hero h1 { font-size: 2rem; font-weight: 700; color: var(--dark); }
+    .hero h1 span { color: var(--red); }
+    .hero p { color: var(--gray); margin-top: 4px; font-size: 0.9rem; }
+
+    /* GRID */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+    /* PANELS */
+    .panel {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+    .panel-head {
+      background: var(--dark);
+      color: #fff;
+      padding: 14px 20px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-head .dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
+    .panel-body { padding: 20px; }
+
+    /* STEPS */
+    .steps { display: flex; gap: 4px; margin-bottom: 20px; }
+    .step-item {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--gray);
+      transition: all .3s;
+    }
+    .step-item.active { background: var(--red); color: #fff; }
+    .step-item.done { background: var(--green); color: #fff; }
+
+    /* CALL BUTTON */
+    .btn-call {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-call:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(214,4,4,.3); }
+    .btn-call:active { transform: translateY(0); }
+    .btn-call:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* STATES */
+    .state { display: none; }
+    .state.visible { display: block; }
+
+    /* RINGING */
+    .ringing { text-align: center; padding: 20px 0; }
+    .ringing .icon { font-size: 2.5rem; animation: ring .5s infinite alternate; }
+    @keyframes ring { 0%{transform:rotate(-15deg)} 100%{transform:rotate(15deg)} }
+    .ringing p { margin-top: 10px; font-weight: 600; color: var(--dark); }
+    .dots span {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--red);
+      border-radius: 50%;
+      margin: 0 3px;
+      animation: dot-bounce 1.2s infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: .2s; }
+    .dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes dot-bounce { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+    /* PLAYING */
+    .msg-box {
+      background: var(--dark);
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      min-height: 80px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .msg-box .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--red);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .cursor { display: inline-block; width: 2px; height: 1em; background: var(--red); animation: blink .8s infinite; vertical-align: text-bottom; margin-left: 2px; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* PROGRESS */
+    .progress-wrap { height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; margin-bottom: 12px; }
+    .progress-bar { height: 100%; background: var(--red); width: 0%; transition: width .1s linear; }
+
+    /* ALERTS */
+    .alert {
+      display: none;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-top: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .alert.visible { display: flex; align-items: center; gap: 10px; }
+    .alert-green { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .alert-gray { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+    /* RESET */
+    .btn-reset {
+      display: none;
+      margin-top: 12px;
+      padding: 8px 20px;
+      background: transparent;
+      border: 2px solid var(--dark);
+      color: var(--dark);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-reset:hover { background: var(--dark); color: #fff; }
+    .btn-reset.visible { display: inline-block; }
+
+    /* CRM TABLE */
+    .crm-info { font-size: 0.8rem; color: var(--gray); margin-bottom: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .crm-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .crm-table th { background: var(--dark); color: #fff; padding: 8px 10px; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px; }
+    .crm-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+    .crm-table tr:hover td { background: #f8fafc; }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-yellow { background: #fef3c7; color: #92400e; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .empty-row { text-align: center; color: var(--gray); font-style: italic; padding: 24px !important; }
+
+    .btn-sm {
+      padding: 4px 10px;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-sm:hover { opacity: .8; }
+    .btn-sm:disabled { opacity: .4; cursor: default; }
+
+    /* EMAIL SECTION */
+    .email-section {
+      margin-top: 20px;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+    .email-head {
+      background: var(--dark2);
+      color: #fff;
+      padding: 12px 20px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .email-body { padding: 16px 20px; }
+    .email-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 10px;
+      animation: fadeIn .4s ease;
+    }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .email-card .from { font-size: 0.75rem; color: var(--gray); margin-bottom: 4px; }
+    .email-card .subject { font-weight: 700; color: var(--dark); margin-bottom: 8px; font-size: 0.9rem; }
+    .email-card .content { font-size: 0.82rem; color: #475569; line-height: 1.6; }
+    .email-card .tag {
+      display: inline-block;
+      background: var(--red);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-right: 4px;
+      text-transform: uppercase;
+    }
+    .email-empty { text-align: center; color: var(--gray); padding: 20px; font-style: italic; font-size: 0.85rem; }
+
+    /* FOOTER */
+    footer { text-align: center; padding: 20px; font-size: 0.75rem; color: var(--gray); margin-top: 20px; }
+    footer span { color: var(--red); font-weight: 600; }
+
+    /* ROW ANIM */
+    .row-fade { animation: fadeIn .5s ease; }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="brand"><span>TURBO</span> KONIN</div>
+    <div class="badge-live">● LIVE DEMO</div>
+  </div>
+
+  <div class="container">
+    <!-- HERO -->
+    <div class="hero">
+      <h1>Wirtualny Portier <span>TURBO</span></h1>
+      <p>Interaktywne demo systemu automatyzacji — kliknij "Zadzwoń" i obserwuj jak działa</p>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="grid">
+
+      <!-- LEFT: CALL SIMULATION -->
+      <div class="panel">
+        <div class="panel-head">📞 Symulacja połączenia</div>
+        <div class="panel-body">
+
+          <!-- Steps -->
+          <div class="steps">
+            <div class="step-item active" id="step1">1. Połączenie</div>
+            <div class="step-item" id="step2">2. Wiadomość</div>
+            <div class="step-item" id="step3">3. SMS</div>
+          </div>
+
+          <!-- STATE: IDLE -->
+          <div class="state visible" id="stateIdle">
+            <p style="font-size:0.85rem;color:var(--gray);margin-bottom:14px;">
+              Kliknij poniżej aby zasymulować połączenie klienta do Szkoły Jazdy TURBO. 
+              System odbierze automatycznie, odtworzy wiadomość i wyśle SMS.
+            </p>
+            <button class="btn-call" id="btnCall" onclick="startCall()">
+              📞 ZADZWOŃ TERAZ (DEMO)
+            </button>
+          </div>
+
+          <!-- STATE: RINGING -->
+          <div class="state" id="stateRinging">
+            <div class="ringing">
+              <div class="icon">📞</div>
+              <p>Dzwonię do TURBO Konin…</p>
+              <div class="dots"><span></span><span></span><span></span></div>
+              <p style="font-size:0.8rem;color:var(--gray);margin-top:8px;">Wirtualny Portier odbiera…</p>
+            </div>
+          </div>
+
+          <!-- STATE: PLAYING -->
+          <div class="state" id="statePlaying">
+            <div class="msg-box">
+              <div class="label">🔊 Głos Polly.Ewa (PL)</div>
+              <div id="msgText"><span class="cursor"></span></div>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <!-- SMS Alert -->
+            <div class="alert alert-green" id="alertSms">
+              ✅&nbsp;&nbsp;<strong>SMS wysłany!</strong>&nbsp;Link do formularza dostarczony na numer klienta.
+            </div>
+            <!-- Done -->
+            <div class="alert alert-gray" id="alertDone">
+              ☎️&nbsp;&nbsp;Połączenie zakończone. Czas rozmowy: <strong>0:18</strong>
+            </div>
+            <button class="btn-reset" id="btnReset" onclick="resetDemo()">↺ Resetuj demo</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: CRM -->
+      <div class="panel">
+        <div class="panel-head"><span class="dot"></span>&nbsp;CRM — Baza leadów (Airtable)</div>
+        <div class="panel-body">
+          <div class="crm-info">
+            <span>Leadów: <strong id="leadCount">0</strong></span>
+            <span id="syncTime">Synchronizacja: —</span>
+          </div>
+          <table class="crm-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Telefon</th>
+                <th>Czas</th>
+                <th>SMS</th>
+                <th>Status</th>
+                <th>Akcja</th>
+              </tr>
+            </thead>
+            <tbody id="crmBody">
+              <tr id="emptyRow"><td colspan="6" class="empty-row">Brak leadów — kliknij "Zadzwoń"</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+
+    <!-- EMAIL NOTIFICATIONS -->
+    <div class="email-section">
+      <div class="email-head">📧 Powiadomienie do właścicielki (email)</div>
+      <div class="email-body" id="emailList">
+        <div class="email-empty" id="emailEmpty">Tutaj pojawią się powiadomienia po każdym połączeniu</div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <footer>Demo przygotowane dla <span>Szkoły Jazdy TURBO Konin</span> · System „Wirtualny Portier" · QA10 © 2026</footer>
+
+<script>
+/* =============================================
+   WIRTUALNY PORTIER — DEMO LOGIC
+   ============================================= */
+
+const MESSAGE = "Dzień dobry! Dodzwoniłeś się do Szkoły Jazdy TURBO w Koninie. Właśnie wysłałam Ci SMS z linkiem do naszej strony, gdzie możesz sprawdzić pełną ofertę kursów i zapisać się online. Zapraszamy serdecznie!";
+
+let running = false;
+let leads = 0;
+let typeTimer = null;
+
+// Utils
+function randPhone() {
+  const p = ['500','502','505','510','512','515','530','533','600','602','604','660','662','691','694','697','721','723','781','784','885','888'][Math.floor(Math.random()*22)];
+  const r = () => String(Math.floor(Math.random()*900+100));
+  return '+48 ' + p + ' ' + r() + ' ' + r();
+}
+function timeNow() {
+  const d = new Date();
+  return [d.getHours(), d.getMinutes(), d.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':');
+}
+function dateNow() {
+  const d = new Date();
+  return d.toLocaleDateString('pl-PL') + ' ' + timeNow();
+}
+
+// State management
+function showState(id) {
+  document.querySelectorAll('.state').forEach(el => el.classList.remove('visible'));
+  document.getElementById(id).classList.add('visible');
+}
+function setStep(n) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('step' + i);
+    el.classList.remove('active', 'done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+}
+
+// Main flow
+function startCall() {
+  if (running) return;
+  running = true;
+  document.getElementById('btnCall').disabled = true;
+
+  // Step 1: Ringing
+  setStep(1);
+  showState('stateRinging');
+
+  setTimeout(function() {
+    // Step 2: Message
+    setStep(2);
+    showState('statePlaying');
+    typeMessage(MESSAGE, function() {
+      // Step 3: SMS
+      setTimeout(function() {
+        setStep(3);
+        document.getElementById('alertSms').classList.add('visible');
+
+        setTimeout(function() {
+          document.getElementById('alertDone').classList.add('visible');
+          document.getElementById('btnReset').classList.add('visible');
+          addLead();
+        }, 800);
+      }, 600);
+    });
+  }, 2500);
+}
+
+function typeMessage(text, callback) {
+  var container = document.getElementById('msgText');
+  container.innerHTML = '<span class="cursor"></span>';
+  var i = 0;
+  var total = text.length;
+  var speed = 35; // ms per char
+
+  typeTimer = setInterval(function() {
+    if (i >= total) {
+      clearInterval(typeTimer);
+      container.textContent = text;
+      document.getElementById('progressBar').style.width = '100%';
+      if (callback) callback();
+      return;
+    }
+    container.innerHTML = text.slice(0, i + 1) + '<span class="cursor"></span>';
+    document.getElementById('progressBar').style.width = ((i / total) * 100) + '%';
+    i++;
+  }, speed);
+}
+
+function resetDemo() {
+  running = false;
+  clearInterval(typeTimer);
+  document.getElementById('btnCall').disabled = false;
+  document.getElementById('msgText').innerHTML = '<span class="cursor"></span>';
+  document.getElementById('progressBar').style.width = '0%';
+  document.getElementById('alertSms').classList.remove('visible');
+  document.getElementById('alertDone').classList.remove('visible');
+  document.getElementById('btnReset').classList.remove('visible');
+  setStep(1);
+  showState('stateIdle');
+}
+
+// CRM
+function addLead() {
+  leads++;
+  var phone = randPhone();
+  var time = timeNow();
+
+  // Remove empty row
+  var empty = document.getElementById('emptyRow');
+  if (empty) empty.remove();
+
+  var tbody = document.getElementById('crmBody');
+  var tr = document.createElement('tr');
+  tr.className = 'row-fade';
+  tr.innerHTML = '<td>' + leads + '</td>' +
+    '<td><strong>' + phone + '</strong></td>' +
+    '<td>' + time + '</td>' +
+    '<td><span class="badge badge-green">✅ Wysłany</span></td>' +
+    '<td id="status-' + leads + '"><span class="badge badge-yellow">⏳ Oczekuje</span></td>' +
+    '<td><button class="btn-sm" id="btn-' + leads + '" onclick="enrollLead(' + leads + ')">Zapisz</button></td>';
+  tbody.insertBefore(tr, tbody.firstChild);
+
+  document.getElementById('leadCount').textContent = leads;
+  document.getElementById('syncTime').textContent = 'Sync: ' + dateNow();
+
+  // After 3s → form opened
+  var currentLead = leads;
+  setTimeout(function() {
+    var s = document.getElementById('status-' + currentLead);
+    if (s && s.querySelector('.badge-yellow')) {
+      s.innerHTML = '<span class="badge badge-blue">📝 Formularz otwarty</span>';
+    }
+  }, 3000);
+
+  // Add email
+  addEmail(phone, time, leads);
+}
+
+function enrollLead(id) {
+  var s = document.getElementById('status-' + id);
+  if (s) s.innerHTML = '<span class="badge badge-green">✅ Zapisany</span>';
+  var btn = document.getElementById('btn-' + id);
+  if (btn) { btn.disabled = true; btn.textContent = '✓'; }
+  document.getElementById('syncTime').textContent = 'Sync: ' + dateNow();
+}
+
+// Email notifications
+function addEmail(phone, time, id) {
+  var empty = document.getElementById('emailEmpty');
+  if (empty) empty.remove();
+
+  var list = document.getElementById('emailList');
+  var card = document.createElement('div');
+  card.className = 'email-card';
+  card.innerHTML = '<div class="from">wirtualny-portier@turbokonin.pl → skpturbo@wp.pl · ' + dateNow() + '</div>' +
+    '<div class="subject">🔔 Nowe zgłoszenie ze Szkoły Jazdy TURBO [#' + String(id).padStart(4,'0') + ']</div>' +
+    '<div class="content">' +
+      '<span class="tag">NOWY LEAD</span><span class="tag">AUTO-SMS</span><br><br>' +
+      '<strong>Telefon:</strong> ' + phone + '<br>' +
+      '<strong>Godzina:</strong> ' + time + '<br>' +
+      '<strong>SMS z linkiem:</strong> Wysłany ✅<br>' +
+      '<strong>Status:</strong> <span style="color:var(--yellow)">⏳ Oczekuje na formularz</span>' +
+    '</div>';
+  list.insertBefore(card, list.firstChild);
+}
+</script>
+</body>
+</html>
